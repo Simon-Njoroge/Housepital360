@@ -1,0 +1,1063 @@
+@url=http://localhost:9000
+@patient_access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZjVjZGY0NS1hOTI5LTQ1ZjItOGQ2Ny0xODE2NjIyNWE2MjgiLCJyb2xlIjoicGF0aWVudCIsImlhdCI6MTc1MjA0Mjk1OSwiZXhwIjoxNzUyNjQ3NzU5fQ.FRNnnUqcpN3NuEMQcIUN0ZLtFWmPWBFc1fy93vykFkY
+######################################################
+# API auth
+######################################################
+#sign in
+###
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "mukirisimon22@gmail.com",
+  "password": "41094390Si#",
+  "forceLogin": true
+}
+
+###
+GET {{url}}/auth/me
+Cookie: access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZjVjZGY0NS1hOTI5LTQ1ZjItOGQ2Ny0xODE2NjIyNWE2MjgiLCJyb2xlIjoicGF0aWVudCIsImlhdCI6MTc1MTc5NzUwMywiZXhwIjoxNzUxNzk4NDAzfQ.Fy-Xsp5ClIRMyX7M1OT3uOQrwrd-ZJFjFEtHI54KtFQ
+
+#change password
+###
+PATCH  {{url}}/auth/change-password/8ae0827d-488f-4286-ad3e-5638623c2d90
+Content-Type: application/json
+
+{
+  "newPassword": "newpassword123"
+}
+
+
+
+#sign out
+###
+POST {{url}}/auth/logout/419bf34d-02a4-4c8a-958e-f476808675ef
+
+#refresh token
+###
+POST {{url}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0M2YxMGJmMy0yMTkzLTQxMjUtYTU0YS1kNGUyMTdiM2VjZDciLCJyb2xlIjoicGF0aWVudCIsImlhdCI6MTc1MTQ2MzUxMywiZXhwIjoxNzUxNDY0MTE3fQ.fOBYYRQWhLAdxHjSX6rYHqyELAQNnBjvd6sAPkXGW5o"
+}
+
+######################################################
+# API Endpoints for Vitals
+######################################################
+GET {{url}}/vitals
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/vitals/1
+
+###
+POST {{url}}/vitals
+Content-Type: application/json
+
+{
+  "patientId": "12345",
+  "temperature": 98.6,
+  "heartRate": 72,
+  "bloodPressure": "120/80",
+  "respiratoryRate": 16,
+  "oxygenSaturation": 98,
+  "createdBy": "admin"
+}
+
+###
+PATCH {{url}}/vitals/1
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "temperature": 99.1,
+  "heartRate": 75,
+  "bloodPressure": "122/82",
+  "respiratoryRate": 18,
+  "oxygenSaturation": 97
+}
+
+###
+DELETE {{url}}/vitals/11111-1111-1111-1111-111111111111
+Authorization: Bearer {{patient_access_token}}
+
+###
+GET {{url}}/vitals/patient/:patientId
+Authorization: Bearer {{patient_access_token}}
+
+##############################################################
+# API Endpoints for Virtual Consultations
+##############################################################
+
+###
+GET {{url}}/virtual-consultations
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/virtual-consultations/1
+Authorization: Bearer {{patient_access_token}}
+
+###
+POST {{url}}/virtual-consultations
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "appointmentId": "12345",
+  "consultationDate": "2023-10-01T10:00:00Z",
+  "consultationTime": "10:00",
+  "doctorId": "67890",
+  "patientId": "12345",
+  "status": "scheduled",
+  "createdBy": "admin"
+}
+
+###
+PATCH {{url}}/virtual-consultations/1
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+###
+DELETE {{url}}/virtual-consultations/1
+
+
+######################################################################
+# API Endpoints for User Management
+######################################################################
+###
+GET {{url}}/user
+###
+GET {{url}}/user/c9156bff-8593-4424-91b7-c79f70ad373f
+###
+POST {{url}}/user
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "doc8@gmail.com",
+  "phone": "123-456-7890",
+
+}
+###
+PATCH {{url}}/user/c9156bff-8593-4424-91b7-c79f70ad373f
+Content-Type: application/json
+
+{
+  "role": "doctor"
+}
+
+###
+DELETE {{url}}/user/1
+
+
+######################################################################
+# API Endpoints for Time Slots
+######################################################################
+###
+GET {{url}}/time-slots
+Authorization: Bearer {{patient_access_token}}
+
+###
+GET {{url}}/time-slots/doctor/c9156bff-8593-4424-91b7-c79f70ad373f
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/time-slots/1
+Authorization: Bearer {{patient_access_token}}                                                                                                                                                             
+###
+POST {{url}}/time-slots 
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "doctor_id": "c9156bff-8593-4424-91b7-c79f70ad373f",
+  "date": "2025-07-10T10:00:00Z",
+  "start_time": "11:00",
+  "end_time": "23:20",
+  "slot_type": "consultation"
+}
+
+###
+PATCH {{url}}/time-slots/1
+Content-Type: application/json
+
+{
+  "status": "booked"
+}
+
+###
+DELETE {{url}}/time-slots/1
+
+
+######################################################################
+# API Endpoints for Appointments
+######################################################################
+###
+GET {{url}}/appointments
+Authorization: Bearer {{patient_access_token}}
+
+###
+GET {{url}}/appointments/user/c9156bff-8593-4424-91b7-c79f70ad373f
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/appointments/1
+
+###
+GET {{url}}/appointments/doctor/c9156bff-8593-4424-91b7-c79f70ad373f/patients
+Authorization: Bearer {{patient_access_token}}
+
+###
+POST {{url}}/appointments/49ae6a32-f85e-4d07-87a0-502113da6c0/confirm
+Authorization: Bearer {{patient_access_token}}
+
+###
+POST {{url}}/appointments
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "patient_id": "df5cdf45-a929-45f2-8d67-18166225a628",
+  "doctor_id": "c9156bff-8593-4424-91b7-c79f70ad373f",
+  "department_id":"cddfa1d8-5222-471f-808c-35e255cb7a55",
+  "time_slot_id": "c1420ad5-edcf-4855-a1ef-1b5a732da164",
+  "symptoms": "Headache and fever",
+  "consultation_type": "in_person"
+}
+
+###
+PATCH {{url}}/appointments/d5a696a2-1ad3-4b19-8f46-c3f2e867c0c9
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "status":"completed"
+}
+
+###
+DELETE {{url}}/appointments/1
+
+
+######################################################################
+# API Endpoints for medication requests
+######################################################################
+###
+POST {{url}}/medication-requests/bulk
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+[
+  {
+    "patient_id":"df5cdf45-a929-45f2-8d67-18166225a628",
+    "medication_id": "05a31ea0-a26b-4b36-9821-05450a062fae",
+    "inventory_id": "dc0092c5-6dc3-47b0-94d2-50b7dfd85c8e",
+
+    "reason": "Headache and fever",
+    "quantity": 1
+},
+  {
+    "patient_id":"df5cdf45-a929-45f2-8d67-18166225a628",
+    "medication_id": "05a31ea0-a26b-4b36-9821-05450a062fae",
+    "inventory_id": "dc0092c5-6dc3-47b0-94d2-50b7dfd85c8e",
+    "reason": "Headache and fever",
+    "quantity": 1
+}
+]
+
+###
+GET {{url}}/medication-requests/user/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
+
+
+
+######################################################################
+# API Endpoints for Prescriptions
+######################################################################
+###
+GET {{url}}/prescriptions
+###
+GET {{url}}/prescriptions/1
+###
+POST {{url}}/prescriptions
+Content-Type: application/json
+
+{
+  "appointmentId": "12345",
+  "prescriptionItems": [
+    {
+      "medicationName": "Aspirin",
+      "dosage": "100mg",
+      "frequency": "twice a day"
+    },
+    {
+      "medicationName": "Ibuprofen",
+      "dosage": "200mg",
+      "frequency": "once a day"
+    }
+  ],
+  "createdBy": "admin"
+}
+
+###
+PATCH {{url}}/prescriptions/1
+Content-Type: application/json
+
+{
+  "prescriptionItems": [
+    {
+      "medicationName": "Aspirin",
+      "dosage": "150mg",
+      "frequency": "twice a day"
+    }
+  ]
+}
+
+###
+DELETE {{url}}/prescriptions/1
+
+
+######################################################################
+# API Endpoints for Prescription Items
+######################################################################
+###
+GET {{url}}/prescription-items
+###
+GET {{url}}/prescription-items/1
+###
+POST {{url}}/prescription-items
+Content-Type: application/json
+
+{
+  "medication_id": "12345",
+  "inventory_id": "67890",
+  "dosage": "500mg",
+  "frequency": "once a day",
+  "duration": "7 days"
+}
+
+###
+PATCH {{url}}/prescription-items/1
+Content-Type: application/json
+
+{
+  "dosage": "600mg",
+  "frequency": "twice a day"
+}
+
+###
+DELETE {{url}}/prescription-items/1
+
+
+######################################################################
+# API Endpoints for Pharmacy Inventory
+######################################################################
+###
+GET {{url}}/pharmacy-inventory
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/pharmacy-inventory/1
+###
+POST {{url}}/pharmacy-inventory
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+  {
+    "medication_id": "c578f58d-afb3-402d-a178-5a3c78f915ac",
+    "batch_number": "RNT-010",
+    "stock": 210,
+    "price": 11.0,
+    "cost": 6.0,
+    "expiry_date": "2025-10-10",
+    "supplier": "Zydus Health",
+    "reorder_level": 45,
+    "is_active": true
+  }
+###
+PATCH {{url}}/pharmacy-inventory/1
+Content-Type: application/json
+
+{
+  "quantity": 120,
+  "expiryDate": "2025-01-31"
+}
+
+###
+DELETE {{url}}/pharmacy-inventory/1
+
+
+
+######################################################################
+# API Endpoints for patient queue
+######################################################################
+###
+GET {{url}}/patient-queue
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/patient-queue/doctor/c9156bff-8593-4424-91b7-c79f70ad373f
+Authorization: Bearer {{patient_access_token}}
+###
+POST {{url}}/patient-queue
+Content-Type: application/json
+
+{
+  "appointmentId": "12345",
+  "status": "waiting",
+  "createdBy": "admin"
+}
+
+###
+PATCH {{url}}/patient-queue/1
+Content-Type: application/json
+
+{
+  "status": "seen"
+}
+
+###
+DELETE {{url}}/patient-queue/1
+
+######################################################################
+# API Endpoints for Patient Profiles
+######################################################################
+###
+GET {{url}}/patient-profiles
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/patient-profiles/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
+###
+POST {{url}}/patient-profiles
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "user_id": "df5cdf45-a929-45f2-8d67-18166225a628"
+}
+
+###
+PATCH {{url}}/patient-profiles/user/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "blood_type": "O+"
+}
+
+###
+DELETE {{url}}/patient-profiles/1
+
+
+######################################################################
+# API Endpoints for Patient Feedback
+######################################################################
+###
+GET {{url}}/patient-feedback
+###
+GET {{url}}/patient-feedback/1
+###
+POST {{url}}/patient-feedback
+Content-Type: application/json
+
+{
+  "patientId": "12345",
+  "appointmentId": "67890",
+  "feedback": "Great service!",
+  "rating": 5,
+  "createdBy": "admin"
+}
+###
+PATCH {{url}}/patient-feedback/1
+Content-Type: application/json
+
+{
+  "feedback": "Excellent service!",
+  "rating": 5
+}
+
+###
+DELETE {{url}}/patient-feedback/1
+
+
+######################################################################
+# API Endpoints for Medication Dispensations
+######################################################################
+###
+GET {{url}}/medication-dispensations
+###
+GET {{url}}/medication-dispensations/1
+###
+POST {{url}}/medication-dispensations
+Content-Type: application/json
+
+{
+  "prescriptionItemId": "12345",
+  "pharmacyInventoryId": "67890",
+  "dispensedQuantity": 30,
+  "dispensedBy": "admin"
+}
+
+###
+PATCH {{url}}/medication-dispensations/1
+Content-Type: application/json
+
+{
+  "dispensedQuantity": 40
+}
+
+###
+DELETE {{url}}/medication-dispensations/1
+
+######################################################################
+# API Endpoints for Medication Catalog
+######################################################################
+###
+GET {{url}}/medication-catalog
+Authorization:  Bearer {{patient_access_token}}
+
+###
+GET {{url}}/medication-catalog/1
+###
+POST {{url}}/medication-catalog
+Authorization:  Bearer {{patient_access_token}}
+Content-Type: application/json
+
+ {
+    "name": "Nifedipine",
+    "generic_name": "Nifedipine",
+    "description": "Calcium channel blocker for high blood pressure.",
+    "category": "Cardiovascular",
+    "form": "tablet",
+    "strength": "30mg",
+    "manufacturer": "Bayer",
+    "is_controlled": false
+  }
+###
+PATCH {{url}}/medication-catalog/1
+Content-Type: application/json
+
+{
+  "name": "Aspirin Updated",
+  "description": "Updated pain reliever",
+  "dosageForm": "Tablet",
+  "strength": "150mg"
+}
+###
+DELETE {{url}}/medication-catalog/1
+
+######################################################################
+# API Endpoints for Medical History
+######################################################################
+###
+GET {{url}}/medical-history
+###
+GET {{url}}/medical-history/1
+###
+POST {{url}}/medical-history
+Content-Type: application/json
+
+{
+  "patient_id": "12345",
+  "created_by": "admin",
+  "medical_conditions": [
+    {
+      "condition": "Hypertension",
+      "status": "controlled"
+    }
+  ]
+}
+
+###
+PATCH {{url}}/medical-history/1
+Content-Type: application/json
+
+{
+  "medical_conditions": [
+    {
+      "condition": "Hypertension",
+      "status": "uncontrolled"
+    }
+  ]
+}
+
+###
+DELETE {{url}}/medical-history/1
+
+
+
+######################################################################
+# API Endpoints for Lab Tests
+######################################################################
+###
+GET {{url}}/lab-tests
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/lab-tests/patient/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
+###
+POST {{url}}/lab-tests
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "patient_id": "df5cdf45-a929-45f2-8d67-18166225a628",
+  "test_type_id": "2407ee3a-86e4-446d-a82b-0141ea2fd5f0",
+  "appointment_id": "86d982f2-6c90-4438-a4c6-e6817fc78173",
+  "specimen_type": "try",
+  "priority":"urgent"
+}
+
+###
+PATCH {{url}}/lab-tests/1
+Content-Type: application/json
+
+{
+  "status": "completed",
+  "dateCompleted": "2023-10-01T12:00:00Z"
+}
+
+###
+DELETE {{url}}/lab-tests/1
+
+
+######################################################################
+# API Endpoints for Lab Test Types
+######################################################################
+###
+GET {{url}}/lab-test-types
+Authorization:  Bearer {{patient_access_token}}
+###
+GET {{url}}/lab-test-types/1
+###
+POST {{url}}/lab-test-types
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+ {
+    "code": "LT-009",
+    "name": "C‑reactive Protein",
+    "description": "Marker of inflammation",
+    "category": "Immunology",
+    "turnaround_time": "24 hours",
+    "preparation_instructions": "No special preparation",
+    "is_active": true
+  }
+
+###
+PATCH {{url}}/lab-test-types/1
+Content-Type: application/json
+
+{
+  "name": "Updated Blood Test",
+  "description": "An updated test to analyze blood samples",
+  "category": "Hematology"
+}
+
+###
+DELETE {{url}}/lab-test-types/1
+
+
+######################################################################
+# API Endpoints for Lab Test Results
+######################################################################
+###
+GET {{url}}/lab-test-results
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/lab-test-results/1
+###
+POST {{url}}/lab-test-results
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "parameter_name": "Hemoglobin",
+  "result_value": "13.2",
+  "unit": "g/dL",
+  "reference_range": "13.0 - 17.0",
+  "abnormal_flag": "normal",
+  "notes": "Within normal range",
+  "lab_test_id": "749ecc4a-1e89-462e-a1f4-51e253812410",
+  "created_by": "1c808547-a721-476e-84d1-bcd2165416ac"
+}
+
+###
+PATCH {{url}}/lab-test-results/1
+Content-Type: application/json
+
+{
+  "result_value": "14 g/dL",
+  "notes": "Slight decrease observed"
+}
+
+###
+DELETE {{url}}/lab-test-results/1
+
+
+######################################################################
+# API Endpoints for Invoices
+######################################################################
+
+###
+GET {{url}}/invoices
+Authorization: Bearer {{patient_access_token}}
+
+###
+GET {{url}}/invoices/patient/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
+
+###
+GET {{url}}/invoices/1
+###
+POST {{url}}/invoices
+Content-Type: application/json
+
+{
+  "patient_id": "43f10bf3-2193-4125-a54a-d4e217b3ecd7",
+  "appointment_id": "4802fd5c-7a1c-4af5-80cd-45d018ddfe8c",
+  "invoice_number": "INV-20231001-001",
+  "subtotal":100.00,
+  "grand_total":90.00,
+  "balance_due": 90.00,
+  "issue_date": "2023-10-01T10:00:00Z",
+  "due_date": "2023-10-01T10:00:00Z",
+  "notes": "try",
+   "items": [
+      {
+      "billing_code_id": "2f9545f7-97b6-4c32-9059-bdc7b469c018",
+      "quantity": 1,
+      "unit_price": 100,
+      "discount": 10.00,
+      "tax_amount": 10.00,
+      "total_amount": 90.00,
+      "description": "try"
+    }
+  ]
+}
+
+###
+PATCH {{url}}/invoices/1
+Content-Type: application/json
+
+{
+  "status": "paid"
+}
+
+###
+DELETE {{url}}/invoices/1
+
+
+######################################################################
+# API Endpoints for Invoice Items
+######################################################################
+###
+GET {{url}}/invoice-items
+###
+GET {{url}}/invoice-items/1
+###
+POST {{url}}/invoice-items
+Content-Type: application/json
+
+{
+  "billing_code_id": "2f9545f7-97b6-4c32-9059-bdc7b469c018",
+  "quantity": 1,
+  "unit_price": 100.00,
+  "discount": 10.00,
+  "tax_amount": 10.00,
+  "total_amount": 90.00,
+  "description": "try"
+}
+
+###
+PATCH {{url}}/invoice-items/1
+Content-Type: application/json
+
+{
+  "description": "Updated Consultation Fee",
+  "amount": 120.00,
+  "quantity": 1,
+  "billing_code_id": "67890"
+}
+
+###
+DELETE {{url}}/invoice-items/1
+
+
+######################################################################
+# API Endpoints for insurance claims
+######################################################################
+###
+GET {{url}}/insurance-claims
+###
+GET {{url}}/insurance-claims/1
+
+###
+POST {{url}}/insurance-claims       
+Content-Type: application/json
+
+{
+  "patientId": "12345",
+  "invoiceId": "67890",
+  "insuranceProvider": "Health Insurance Co.",
+  "claimAmount": 150.00,
+  "status": "pending",
+  "createdBy": "admin"
+}
+
+###
+PATCH {{url}}/insurance-claims/1
+Content-Type: application/json
+
+{
+  "status": "approved"
+}
+###
+DELETE {{url}}/insurance-claims/1
+
+
+######################################################################
+# API Endpoints for doctor profiles
+######################################################################
+###
+GET {{url}}/doctor-profiles
+###
+GET {{url}}/doctor-profiles/1
+###
+POST {{url}}/doctor-profiles
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "user_id": "c9156bff-8593-4424-91b7-c79f70ad373f",
+  "specialization": "Cardiology",
+  "bio": "Dr. Johnson is a board-certified cardiologist with over 10 years of experience treating heart conditions.",
+  "license_no": "KEN-MD-56789",
+  "consultation_fee": 3500.00,
+  "years_experience": 10,
+  "profile_picture": "https://www.shutterstock.com/image-photo/portrait-handsome-male-doctor-stethoscope-600nw-2480850611.jpg",
+  "is_accepting_new_patients": true
+}
+
+###
+PATCH {{url}}/doctor-profiles/1
+Content-Type: application/json
+
+{
+  "experience": 12
+}
+
+###
+DELETE {{url}}/doctor-profiles/1
+
+######################################################################
+# API Endpoints for departments
+######################################################################
+###
+GET {{url}}/departments
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/departments/1
+###
+POST {{url}}/departments
+Content-Type: application/json
+
+{
+  "name": "Cardiology",
+  "description": "Department of Cardiology",
+  "location": "Building A, Floor 2",
+  "contact_extension":"try"
+}
+
+###
+PATCH {{url}}/departments/1
+Content-Type: application/json
+
+{
+  "description": "Updated Department of Cardiology"
+}
+
+###
+DELETE {{url}}/departments/1
+
+######################################################################
+# API Endpoints for department staff
+######################################################################
+###
+GET {{url}}/department-staff
+###
+GET {{url}}/department-staff/1
+###
+POST {{url}}/department-staff
+Content-Type: application/json
+
+{
+  "departmentId": "12345",
+  "userId": "67890",
+  "role": "nurse",
+  "createdBy": "admin"
+}
+###
+PATCH {{url}}/department-staff/1
+Content-Type: application/json
+
+{
+  "role": "senior nurse"
+}
+###
+DELETE {{url}}/department-staff/1
+
+
+######################################################################
+# API Endpoints for billing codes
+######################################################################
+###
+GET {{url}}/billing-codes
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/billing-codes/1
+Authorization: Bearer {{patient_access_token}}
+###
+POST {{url}}/billing-codes
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "code": "A01",
+  "description": "Consultation Fee",
+  "category": "Consultation",
+  "base_price": 100.00,
+  "is_active": true
+}
+###
+PATCH {{url}}/billing-codes/1
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "description": "Updated Consultation Fee",
+  "amount": 120.00
+}
+###
+DELETE {{url}}/billing-codes/1
+Authorization: Bearer {{patient_access_token}}
+
+#######################################################################
+# API Endpoints for audit logs
+#######################################################################
+###
+GET {{url}}/audit-logs
+###
+GET {{url}}/audit-logs/1
+###
+POST {{url}}/audit-logs
+Content-Type: application/json
+
+{
+  "action": "create",
+  "entity": "patient",
+  "entityId": "12345",
+  "performedBy": "admin",
+  "timestamp": "2023-10-01T10:00:00Z"
+}
+
+###
+PATCH {{url}}/audit-logs/1
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "action": "update",
+  "entity": "patient",
+  "entityId": "12345",
+  "performedBy": "admin",
+  "timestamp": "2023-10-01T11:00:00Z"
+}
+
+###
+DELETE {{url}}/audit-logs/1
+Authorization: Bearer {{patient_access_token}}
+
+######################################################################
+# API Endpoints for appointments
+######################################################################
+###
+GET {{url}}/appointments
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/appointments/1
+Authorization: Bearer {{patient_access_token}}
+###
+POST {{url}}/appointments
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "patientId": "12345",
+  "doctorId": "67890",
+  "appointmentDate": "2023-10-15T10:00:00Z",
+  "message": "Reminder: Your appointment is coming up.",
+  "status": "unread",
+  "createdBy": "admin"
+}
+###
+PATCH {{url}}/appointments/1
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "status": "read"
+}
+###
+DELETE {{url}}/appointments/1
+Authorization: Bearer {{patient_access_token}}
+
+######################################################################
+# API Endpoints for alergies
+######################################################################
+###
+GET {{url}}/allergies
+Authorization: Bearer {{patient_access_token}}
+###
+GET {{url}}/allergies/1
+Authorization: Bearer {{patient_access_token}}
+###
+POST {{url}}/allergies
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "patientId": "12345",
+  "allergen": "Peanuts",
+  "reaction": "Anaphylaxis",
+  "severity": "high",
+  "createdBy": "admin"
+}
+###
+PATCH {{url}}/allergies/1
+Authorization: Bearer {{patient_access_token}}
+Content-Type: application/json
+
+{
+  "reaction": "Mild rash",
+  "severity": "low"
+}
+###
+DELETE {{url}}/allergies/1
+Authorization: Bearer {{patient_access_token}}
+
+######################################################
+# API Endpoints payment
+######################################################
+###
+POST {{url}}/payments/init
+Content-Type: application/json
+Authorization: Bearer {{patient_access_token}}
+
+{
+  "email": "customer@example.com",
+  "amount": 1000,
+  "invoice_id": "30ff1985-b912-4b5b-a0bb-6844b8b568d8",
+  "patient_id": "43f10bf3-2193-4125-a54a-d4e217b3ecd7",
+  "method": "mpesa",
+  "callback_url": "https://google.com"
+}
