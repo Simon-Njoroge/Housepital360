@@ -62,6 +62,7 @@ export class InvoicesService {
       const invoices = await this.invoiceRepository.find({
         where: { patient: { id: patientId } },
         relations: ['patient', 'appointment', 'lineItems', 'payments', 'insuranceClaims'],
+        order: { issue_date: 'DESC' },
       });
 
       if (invoices.length === 0) {

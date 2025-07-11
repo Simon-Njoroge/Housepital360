@@ -10,6 +10,8 @@ import {
   FaCheck,
   FaRedoAlt,
   FaVideo,
+  FaTrash,
+  FaPills
 } from 'react-icons/fa'
 import { Badge } from '@/components/ui/badge'
 import { useAppointmentsByDoctorId } from '@/hooks/userappointment'
@@ -22,6 +24,12 @@ import { confirmAppointment, completeAppointment } from '@/data/appointementapi'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import type { TAppointment } from '@/types/types'
+import { useCreatePrescription } from '@/hooks/useprescription'
+import { usePharmacyInventoryStoreActions } from '@/store/pharmacyinventorystore'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function DoctorDashboardAppointments() {
@@ -32,13 +40,28 @@ export default function DoctorDashboardAppointments() {
   const { userId } = useStore(authStore)
   const { data: appointmentsData, refetch: refetchAppointments } = useAppointmentsByDoctorId(userId as string)
   const { data: slotsData } = useDoctorTimeSlots(userId as string)
-
+  const { inventories = [] } = usePharmacyInventoryStoreActions()
+  const createPrescription = useCreatePrescription()
   const [filterDate, setFilterDate] = useState<string>(
     new Date().toISOString().split('T')[0],
   )
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedPatient, setSelectedPatient] = useState<any>(null)
-  const [autoUpdateDate, setAutoUpdateDate] = useState<boolean>(true) 
+  const [autoUpdateDate, setAutoUpdateDate] = useState<boolean>(true)
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
+  const [prescriptionNotes, setPrescriptionNotes] = useState<string>('')
+  const [medicationItems, setMedicationItems] = useState<any[]>([])
+  const [medicationForm, setMedicationForm] = useState({
+    inventory_id: '',
+    dosage: '',
+    frequency: '',
+    duration: '',
+    quantity: '',
+    instructions: ''
+  })
+
+ 
+
 
   // Automatically update the calendar to the next day
   useEffect(() => {
@@ -162,6 +185,58 @@ export default function DoctorDashboardAppointments() {
       },
     },
   };
+
+
+    const handleAddMedicationItem = () => {
+    if (!medicationForm.inventory_id || !medicationForm.dosage) {
+      return toast.error('Please fill required fields.')
+    }
+    setMedicationItems((prev) => [...prev, medicationForm])
+    setMedicationForm({
+      inventory_id: '',
+      dosage: '',
+      frequency: '',
+      duration: '',
+      quantity: '',
+      instructions: ''
+    })
+  }
+
+    const handleRemoveMedicationItem = (index: number) => {
+    setMedicationItems((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handlePrescriptionSubmit = async () => {
+    if (!selectedAppointment) return toast.error('No appointment selected.')
+    try {
+      const payload = {
+        doctor_id: userId,
+        patient_id: selectedAppointment?.patient.id,
+        appointment_id: selectedAppointment?.appointment.id,
+        notes: prescriptionNotes,
+        valid_from: new Date().toISOString(),
+        valid_until: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString(),
+        items: medicationItems.map((item) => ({
+          medication_id: inventories.find((inv) => inv.id === item.inventory_id)?.medication.id,
+          inventory_id: item.inventory_id,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          duration: item.duration,
+          quantity: item.quantity,
+          instructions: item.instructions,
+        })),
+      }
+
+      await createPrescription.mutateAsync(payload)
+      toast.success('Prescription submitted successfully!')
+      setSelectedAppointment(null)
+      setPrescriptionNotes('')
+      setMedicationItems([])
+          } catch (error: any) {
+      toast.error(`Failed to submit prescription: ${error.message}`)
+    }
+  }
+
 
   return (
     <div className="space-y-6 p-4">
@@ -308,15 +383,131 @@ export default function DoctorDashboardAppointments() {
                         )}
                       </Button>
                     )}
-                    <Button size="sm" variant="ghost">
-                      <FaRedoAlt className="mr-1" /> Reschedule
-                    </Button>
+                     {item.appointment.status === 'completed' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedAppointment(item)}
+                      >
+                        <FaPills className="mr-1" /> Add Prescription
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </Card>
+         {/* Prescription Sheet */}
+       <Sheet open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
+  <SheetContent className="w-full max-w-[540px] p-6 sm:p-8 space-y-6">
+    <h2 className="text-xl font-semibold flex items-center gap-2 text-primary">
+      <FaPills className="text-primary" />
+      Add Prescription
+    </h2>
+
+    <div className="space-y-4">
+      <Textarea
+        value={prescriptionNotes}
+        onChange={(e) => setPrescriptionNotes(e.target.value)}
+        placeholder="Doctor's overall notes (e.g., diagnosis, recommendations)"
+        className="min-h-[100px] resize-none"
+      />
+
+      <Select
+        value={medicationForm.inventory_id}
+        onValueChange={(val) => setMedicationForm((f) => ({ ...f, inventory_id: val }))}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select Inventory" />
+        </SelectTrigger>
+        <SelectContent>
+          {inventories?.map((inv: any) => (
+            <SelectItem key={inv.id} value={inv.id}>
+              {inv.medication.name} ({inv.medication.strength})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input
+          value={medicationForm.dosage}
+          onChange={(e) => setMedicationForm({ ...medicationForm, dosage: e.target.value })}
+          placeholder="Dosage (e.g., 50mg)"
+        />
+        <Input
+          value={medicationForm.frequency}
+          onChange={(e) => setMedicationForm({ ...medicationForm, frequency: e.target.value })}
+          placeholder="Frequency"
+        />
+        <Input
+          value={medicationForm.duration}
+          onChange={(e) => setMedicationForm({ ...medicationForm, duration: e.target.value })}
+          placeholder="Duration (e.g., 5 days)"
+        />
+        <Input
+          value={medicationForm.quantity}
+          onChange={(e) => setMedicationForm({ ...medicationForm, quantity: e.target.value })}
+          placeholder="Quantity"
+        />
+      </div>
+
+      <Textarea
+        value={medicationForm.instructions}
+        onChange={(e) => setMedicationForm({ ...medicationForm, instructions: e.target.value })}
+        placeholder="Instructions"
+        className="resize-none"
+      />
+
+      <Button variant="outline" className="w-full" onClick={handleAddMedicationItem}>
+        Add Medication Item
+      </Button>
+
+      {medicationItems.length > 0 && (
+        <div className="space-y-3">
+          {medicationItems.map((item, i) => (
+            <div
+              key={i}
+              className="relative border rounded-lg p-4 shadow-sm bg-muted dark:bg-muted/50"
+            >
+              <div className="space-y-1 text-sm">
+                <p>
+                  <strong>Medication:</strong>{' '}
+                  {inventories.find((inv) => inv.id === item.inventory_id)?.medication.name}
+                </p>
+                <p>
+                  <strong>Dosage:</strong> {item.dosage}
+                </p>
+                <p>
+                  <strong>Qty:</strong> {item.quantity} &nbsp; | &nbsp;
+                  <strong>Duration:</strong> {item.duration}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 text-destructive hover:bg-destructive/10"
+                onClick={() => handleRemoveMedicationItem(i)}
+              >
+                <FaTrash className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button
+        className="w-full"
+        onClick={handlePrescriptionSubmit}
+        disabled={medicationItems.length === 0}
+      >
+        Submit Prescription ({medicationItems.length})
+      </Button>
+    </div>
+  </SheetContent>
+</Sheet>
+
         {/* Available Slots */}
         <Card className="p-4">
           <h2 className="text-lg font-bold mb-4">Available Slots</h2>

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsEnum, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, IsDateString, IsArray, ValidateNested,IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 
@@ -31,11 +31,21 @@ export class CreatePrescriptionItemDto {
   @IsString()
   quantity: number;
 
+  @ApiProperty({ description: 'Price per unit' })
+  @IsOptional()
+  @IsNumber()
+  price: number;
+  @ApiProperty({ description: 'Total price for the item' })
+  @IsOptional()
+  @IsNumber()
+  total_price: number;
+
   @ApiPropertyOptional({ description: 'Special instructions for patient' })
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.trim())
   instructions?: string;
+
 }
 
 export class PrescriptionItemResponseDto {

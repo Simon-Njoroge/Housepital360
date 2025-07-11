@@ -17,6 +17,7 @@ import { Route as AboutUsRouteImport } from './routes/about-us'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardUserSettingRouteImport } from './routes/dashboard/user-setting'
 import { Route as DashboardUserPrescriptionsRouteImport } from './routes/dashboard/user-prescriptions'
+import { Route as DashboardUserPharmacyRouteImport } from './routes/dashboard/user-pharmacy'
 import { Route as DashboardUserMessageRouteImport } from './routes/dashboard/user-message'
 import { Route as DashboardUserLabtestRouteImport } from './routes/dashboard/user-labtest'
 import { Route as DashboardUserHomeRouteImport } from './routes/dashboard/user-home'
@@ -70,6 +71,11 @@ const DashboardUserPrescriptionsRoute =
     path: '/user-prescriptions',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardUserPharmacyRoute = DashboardUserPharmacyRouteImport.update({
+  id: '/user-pharmacy',
+  path: '/user-pharmacy',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardUserMessageRoute = DashboardUserMessageRouteImport.update({
   id: '/user-message',
   path: '/user-message',
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/user-home': typeof DashboardUserHomeRoute
   '/dashboard/user-labtest': typeof DashboardUserLabtestRoute
   '/dashboard/user-message': typeof DashboardUserMessageRoute
+  '/dashboard/user-pharmacy': typeof DashboardUserPharmacyRoute
   '/dashboard/user-prescriptions': typeof DashboardUserPrescriptionsRoute
   '/dashboard/user-setting': typeof DashboardUserSettingRoute
 }
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/dashboard/user-home': typeof DashboardUserHomeRoute
   '/dashboard/user-labtest': typeof DashboardUserLabtestRoute
   '/dashboard/user-message': typeof DashboardUserMessageRoute
+  '/dashboard/user-pharmacy': typeof DashboardUserPharmacyRoute
   '/dashboard/user-prescriptions': typeof DashboardUserPrescriptionsRoute
   '/dashboard/user-setting': typeof DashboardUserSettingRoute
 }
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/dashboard/user-home': typeof DashboardUserHomeRoute
   '/dashboard/user-labtest': typeof DashboardUserLabtestRoute
   '/dashboard/user-message': typeof DashboardUserMessageRoute
+  '/dashboard/user-pharmacy': typeof DashboardUserPharmacyRoute
   '/dashboard/user-prescriptions': typeof DashboardUserPrescriptionsRoute
   '/dashboard/user-setting': typeof DashboardUserSettingRoute
 }
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/dashboard/user-home'
     | '/dashboard/user-labtest'
     | '/dashboard/user-message'
+    | '/dashboard/user-pharmacy'
     | '/dashboard/user-prescriptions'
     | '/dashboard/user-setting'
   fileRoutesByTo: FileRoutesByTo
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/dashboard/user-home'
     | '/dashboard/user-labtest'
     | '/dashboard/user-message'
+    | '/dashboard/user-pharmacy'
     | '/dashboard/user-prescriptions'
     | '/dashboard/user-setting'
   id:
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/dashboard/user-home'
     | '/dashboard/user-labtest'
     | '/dashboard/user-message'
+    | '/dashboard/user-pharmacy'
     | '/dashboard/user-prescriptions'
     | '/dashboard/user-setting'
   fileRoutesById: FileRoutesById
@@ -323,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/user-prescriptions'
       fullPath: '/dashboard/user-prescriptions'
       preLoaderRoute: typeof DashboardUserPrescriptionsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/user-pharmacy': {
+      id: '/dashboard/user-pharmacy'
+      path: '/user-pharmacy'
+      fullPath: '/dashboard/user-pharmacy'
+      preLoaderRoute: typeof DashboardUserPharmacyRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/user-message': {
@@ -417,6 +436,7 @@ interface DashboardRouteChildren {
   DashboardUserHomeRoute: typeof DashboardUserHomeRoute
   DashboardUserLabtestRoute: typeof DashboardUserLabtestRoute
   DashboardUserMessageRoute: typeof DashboardUserMessageRoute
+  DashboardUserPharmacyRoute: typeof DashboardUserPharmacyRoute
   DashboardUserPrescriptionsRoute: typeof DashboardUserPrescriptionsRoute
   DashboardUserSettingRoute: typeof DashboardUserSettingRoute
 }
@@ -433,6 +453,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardUserHomeRoute: DashboardUserHomeRoute,
   DashboardUserLabtestRoute: DashboardUserLabtestRoute,
   DashboardUserMessageRoute: DashboardUserMessageRoute,
+  DashboardUserPharmacyRoute: DashboardUserPharmacyRoute,
   DashboardUserPrescriptionsRoute: DashboardUserPrescriptionsRoute,
   DashboardUserSettingRoute: DashboardUserSettingRoute,
 }

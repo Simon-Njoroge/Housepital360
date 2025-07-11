@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { PrescriptionsService } from './prescriptions.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
@@ -12,11 +22,28 @@ import { Roles } from 'src/common/decorators/role.decolator';
 export class PrescriptionsController {
   constructor(private readonly prescriptionsService: PrescriptionsService) {}
 
-  @Post()
-  create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
-    return this.prescriptionsService.create(createPrescriptionDto);
+  @Post('create')
+  async createPrescription(
+    @Body() createPrescriptionDto: CreatePrescriptionDto,
+  ) {
+    try {
+      const result = await this.prescriptionsService.createPrescription(
+        createPrescriptionDto,
+      );
+      return {
+        message: 'Prescription created successfully',
+        data: result,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Error creating prescription',
+          error: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
-
   @Get()
   findAll() {
     return this.prescriptionsService.findAll();
@@ -27,8 +54,34 @@ export class PrescriptionsController {
     return this.prescriptionsService.findOne(id);
   }
 
+  @Patch('clear/:id')
+  async deletePrescription(@Param('id') id: string) {
+    try {
+      await this.prescriptionsService.deletePrescription(id);
+      return { message: 'Prescription deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting prescription:', error.message);
+      return new HttpException(
+        `Failed to delete prescription: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('user/:userId')
+  async findAllByUserId(@Param('userId') userId: string) {
+    try {
+      return await this.prescriptionsService.findAllByUserId(userId);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePrescriptionDto: UpdatePrescriptionDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updatePrescriptionDto: UpdatePrescriptionDto,
+  ) {
     return this.prescriptionsService.update(id, updatePrescriptionDto);
   }
 

@@ -26,6 +26,10 @@ export class CreateInvoiceDto {
   @Type(() => Number)
   subtotal:number
 
+  @ApiProperty({ description: 'Invoice status' })
+  @IsEnum(InvoiceStatus)
+  status: InvoiceStatus;
+
   @ApiProperty({ description: 'grand total', minimum: 0 })
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)

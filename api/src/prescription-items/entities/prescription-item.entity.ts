@@ -41,6 +41,12 @@ export class PrescriptionItem {
   @Column({ type: 'text', nullable: true })
   instructions: string;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  total_price: number;
+
   @Column({ type: 'boolean', default: false })
   is_dispensed: boolean;
 

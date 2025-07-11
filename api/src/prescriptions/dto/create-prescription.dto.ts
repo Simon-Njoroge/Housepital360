@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsEnum, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, IsDateString, IsArray, ValidateNested, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { PrescriptionStatus } from '../entities/prescription.entity';
@@ -29,6 +29,12 @@ export class CreatePrescriptionDto {
   @ApiProperty({ description: 'Valid until date' })
   @IsDateString()
   valid_until: Date;
+
+  @ApiPropertyOptional({ description: 'Is prescription deleted' })
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  is_deleted: boolean = false;
 
   @ApiProperty({ description: 'Prescription items', type: [CreatePrescriptionItemDto] })
   @IsArray()

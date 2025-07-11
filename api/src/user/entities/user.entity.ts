@@ -82,46 +82,46 @@ export class User {
   deleted_at: Date;
 
   // Relations
-  @OneToOne(() => PatientProfile, (patientProfile) => patientProfile.user)
+  @OneToOne(() => PatientProfile, (patientProfile) => patientProfile.user, { eager: true })
   patientProfile: PatientProfile;
 
-  @OneToOne(() => DoctorProfile, (doctorProfile) => doctorProfile.user)
+  @OneToOne(() => DoctorProfile, (doctorProfile) => doctorProfile.user, { eager: true })
   doctorProfile: DoctorProfile;
 
-  @OneToMany(() => DepartmentStaff, (departmentStaff) => departmentStaff.user)
+  @OneToMany(() => DepartmentStaff, (departmentStaff) => departmentStaff.user, { lazy: true })
   departmentStaff: DepartmentStaff[];
 
-  @OneToMany(() => Session, (session) => session.user)
+  @OneToMany(() => Session, (session) => session.user, { lazy: true })
   sessions: Session[];
 
-  @OneToMany(() => TimeSlot, (timeSlot) => timeSlot.doctor)
+  @OneToMany(() => TimeSlot, (timeSlot) => timeSlot.doctor, { lazy: true })
   timeSlots: TimeSlot[];
 
-  @OneToMany(() => Appointment, (appointment) => appointment.patient)
+  @OneToMany(() => Appointment, (appointment) => appointment.patient, { lazy: true })
   patientAppointments: Appointment[];
 
-  @OneToMany(() => Appointment, (appointment) => appointment.doctor)
+  @OneToMany(() => Appointment, (appointment) => appointment.doctor, { lazy: true })
   doctorAppointments: Appointment[];
 
-  @OneToMany(() => MedicalHistory, (medicalHistory) => medicalHistory.patient)
+  @OneToMany(() => MedicalHistory, (medicalHistory) => medicalHistory.patient, { lazy: true })
   patientMedicalHistory: MedicalHistory[];
 
-  @OneToMany(() => MedicalHistory, (medicalHistory) => medicalHistory.createdBy)
+  @OneToMany(() => MedicalHistory, (medicalHistory) => medicalHistory.createdBy, { lazy: true })
   createdMedicalHistory: MedicalHistory[];
 
-  @OneToMany(() => Allergy, (allergy) => allergy.patient)
+  @OneToMany(() => Allergy, (allergy) => allergy.patient, { lazy: true })
   allergies: Allergy[];
 
-  @OneToMany(() => Vital, (vital) => vital.patient)
+  @OneToMany(() => Vital, (vital) => vital.patient, { lazy: true })
   patientVitals: Vital[];
 
-  @OneToMany(() => Vital, (vital) => vital.recordedBy)
+  @OneToMany(() => Vital, (vital) => vital.recordedBy, { lazy: true })
   recordedVitals: Vital[];
 
-  @OneToMany(() => Prescription, (prescription) => prescription.doctor)
+  @OneToMany(() => Prescription, (prescription) => prescription.doctor, { lazy: true })
   doctorPrescriptions: Prescription[];
 
-  @OneToMany(() => Prescription, (prescription) => prescription.patient)
+  @OneToMany(() => Prescription, (prescription) => prescription.patient, { lazy: true })
   patientPrescriptions: Prescription[];
 
   @OneToMany(
@@ -130,40 +130,40 @@ export class User {
   )
   medicationDispensations: MedicationDispensation[];
 
-  @OneToMany(() => Invoice, (invoice) => invoice.patient)
+  @OneToMany(() => Invoice, (invoice) => invoice.patient, { lazy: true })
   invoices: Invoice[];
 
-  @OneToMany(() => Payment, (payment) => payment.patient)
+  @OneToMany(() => Payment, (payment) => payment.patient, { lazy: true })
   patientPayments: Payment[];
 
-  @OneToMany(() => Payment, (payment) => payment.processedBy)
+  @OneToMany(() => Payment, (payment) => payment.processedBy, { lazy: true })
   processedPayments: Payment[];
 
-  @OneToMany(() => InsuranceClaim, (claim) => claim.patient)
+  @OneToMany(() => InsuranceClaim, (claim) => claim.patient, { lazy: true })
   insuranceClaims: InsuranceClaim[];
 
-  @OneToMany(() => LabTest, (labTest) => labTest.patient)
+  @OneToMany(() => LabTest, (labTest) => labTest.patient, { lazy: true })
   patientLabTests: LabTest[];
 
-  @OneToMany(() => LabTest, (labTest) => labTest.orderedBy)
+  @OneToMany(() => LabTest, (labTest) => labTest.orderedBy, { lazy: true })
   orderedLabTests: LabTest[];
 
-  @OneToMany(() => LabTest, (labTest) => labTest.collectedBy)
+  @OneToMany(() => LabTest, (labTest) => labTest.collectedBy, { lazy: true })
   collectedLabTests: LabTest[];
 
-  @OneToMany(() => LabTestResult, (result) => result.createdBy)
+  @OneToMany(() => LabTestResult, (result) => result.createdBy, { lazy: true })
   labTestResults: LabTestResult[];
 
-  @OneToMany(() => PatientFeedback, (feedback) => feedback.patient)
+  @OneToMany(() => PatientFeedback, (feedback) => feedback.patient, { lazy: true })
   patientFeedback: PatientFeedback[];
 
-  @OneToMany(() => PatientFeedback, (feedback) => feedback.respondedBy)
+  @OneToMany(() => PatientFeedback, (feedback) => feedback.respondedBy, { lazy: true })
   respondedFeedback: PatientFeedback[];
 
-  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.user, { lazy: true })
   auditLogs: AuditLog[];
 
-  @OneToMany(() => QueueHistory, (queueHistory) => queueHistory.changedBy)
+  @OneToMany(() => QueueHistory, (queueHistory) => queueHistory.changedBy, { lazy: true })
   queueHistoryChanges: QueueHistory[];
 
   @Column({ type: 'boolean', default: true })
@@ -175,12 +175,12 @@ export class User {
   @Column({ type: 'varchar', nullable: true, select: false })
   two_fa_secret?: string;
 
-   @OneToMany(() => MedicationRequest, (request) => request.patient)
+   @OneToMany(() => MedicationRequest, (request) => request.patient, { lazy: true })
    medicationRequests: MedicationRequest[];
 
-   @OneToMany(() => Message, (message) => message.sender)
+   @OneToMany(() => Message, (message) => message.sender, { lazy: true })
 sentMessages: Message[];
 
-@OneToMany(() => Message, (message) => message.recipient)
+@OneToMany(() => Message, (message) => message.recipient, { lazy: true })
 receivedMessages: Message[];
 }

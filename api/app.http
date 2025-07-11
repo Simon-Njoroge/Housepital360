@@ -127,8 +127,9 @@ DELETE {{url}}/virtual-consultations/1
 ######################################################################
 # API Endpoints for User Management
 ######################################################################
+
 ###
-GET {{url}}/user
+GET {{url}}/user?page=1&limit=10
 ###
 GET {{url}}/user/c9156bff-8593-4424-91b7-c79f70ad373f
 ###
@@ -199,7 +200,7 @@ GET {{url}}/appointments
 Authorization: Bearer {{patient_access_token}}
 
 ###
-GET {{url}}/appointments/user/c9156bff-8593-4424-91b7-c79f70ad373f
+GET {{url}}/appointments/user/df5cdf45-a929-45f2-8d67-18166225a628
 Authorization: Bearer {{patient_access_token}}
 ###
 GET {{url}}/appointments/1
@@ -217,14 +218,7 @@ POST {{url}}/appointments
 Authorization: Bearer {{patient_access_token}}
 Content-Type: application/json
 
-{
-  "patient_id": "df5cdf45-a929-45f2-8d67-18166225a628",
-  "doctor_id": "c9156bff-8593-4424-91b7-c79f70ad373f",
-  "department_id":"cddfa1d8-5222-471f-808c-35e255cb7a55",
-  "time_slot_id": "c1420ad5-edcf-4855-a1ef-1b5a732da164",
-  "symptoms": "Headache and fever",
-  "consultation_type": "in_person"
-}
+
 
 ###
 PATCH {{url}}/appointments/d5a696a2-1ad3-4b19-8f46-c3f2e867c0c9
@@ -276,29 +270,34 @@ Authorization: Bearer {{patient_access_token}}
 ######################################################################
 ###
 GET {{url}}/prescriptions
+Authorization: Bearer {{patient_access_token}}
 ###
-GET {{url}}/prescriptions/1
+GET {{url}}/prescriptions/user/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
 ###
-POST {{url}}/prescriptions
+POST {{url}}/prescriptions/create
+Authorization: Bearer {{patient_access_token}}
 Content-Type: application/json
 
 {
-  "appointmentId": "12345",
-  "prescriptionItems": [
+  "doctor_id": "c9156bff-8593-4424-91b7-c79f70ad373f",
+  "patient_id": "df5cdf45-a929-45f2-8d67-18166225a628",
+  "appointment_id": "e08aebde-47ff-416a-ade0-d6197e6b7d70",
+  "notes": "Patient requires medication for hypertension.",
+  "valid_from": "2025-07-10T00:00:00Z",
+  "valid_until": "2025-07-20T00:00:00Z",
+  "items": [
     {
-      "medicationName": "Aspirin",
-      "dosage": "100mg",
-      "frequency": "twice a day"
-    },
-    {
-      "medicationName": "Ibuprofen",
-      "dosage": "200mg",
-      "frequency": "once a day"
+      "medication_id": "519d3b97-6599-439b-a11c-2346002ff843",
+      "inventory_id": "3148dd6a-4069-4017-b4d3-333becd95543",
+      "dosage": "50mg",
+      "frequency": "Twice a day",
+      "duration": "10 days",
+      "quantity": "1",
+      "instructions": "Take after meals."
     }
-  ],
-  "createdBy": "admin"
+  ]
 }
-
 ###
 PATCH {{url}}/prescriptions/1
 Content-Type: application/json
@@ -314,6 +313,9 @@ Content-Type: application/json
 }
 
 ###
+PATCH {{url}}/prescriptions/clear/011e81d0-33fc-4bd1-844c-f5a075f31178
+Authorization: Bearer {{patient_access_token}}i
+###
 DELETE {{url}}/prescriptions/1
 
 
@@ -322,6 +324,7 @@ DELETE {{url}}/prescriptions/1
 ######################################################################
 ###
 GET {{url}}/prescription-items
+Authorization: Bearer {{patient_access_token}}
 ###
 GET {{url}}/prescription-items/1
 ###
@@ -591,6 +594,7 @@ DELETE {{url}}/medical-history/1
 ###
 GET {{url}}/lab-tests
 Authorization: Bearer {{patient_access_token}}
+
 ###
 GET {{url}}/lab-tests/patient/df5cdf45-a929-45f2-8d67-18166225a628
 Authorization: Bearer {{patient_access_token}}
@@ -626,6 +630,7 @@ DELETE {{url}}/lab-tests/1
 ###
 GET {{url}}/lab-test-types
 Authorization:  Bearer {{patient_access_token}}
+
 ###
 GET {{url}}/lab-test-types/1
 ###
@@ -663,6 +668,11 @@ DELETE {{url}}/lab-test-types/1
 ###
 GET {{url}}/lab-test-results
 Authorization: Bearer {{patient_access_token}}
+
+###
+GET {{url}}/lab-test-results/patient/df5cdf45-a929-45f2-8d67-18166225a628
+Authorization: Bearer {{patient_access_token}}
+
 ###
 GET {{url}}/lab-test-results/1
 ###
@@ -736,11 +746,12 @@ Content-Type: application/json
 }
 
 ###
-PATCH {{url}}/invoices/1
+PATCH {{url}}/invoices/3d14e898-272d-4f20-9ead-21f48e21bbc4
+Authorization: Bearer {{patient_access_token}}
 Content-Type: application/json
 
 {
-  "status": "paid"
+  "status": "partially_paid"
 }
 
 ###

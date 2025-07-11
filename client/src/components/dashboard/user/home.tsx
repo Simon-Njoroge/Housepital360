@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import React from "react";
+import React from 'react'
 import {
   FaCalendarPlus,
   FaPills,
@@ -13,51 +13,89 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaInfoCircle,
-} from "react-icons/fa";
-import { useStore } from "@tanstack/react-store";
-import { authStore } from "@/store/authstore";
-import { useUsersStoreActions } from "@/store/userstore";
-import { useAppointmentsStoreActions } from "@/store/appointmentstore";
-import { useLabTestStoreActions } from "@/store/labteststore";
-
+} from 'react-icons/fa'
+import { useStore } from '@tanstack/react-store'
+import { authStore } from '@/store/authstore'
+import { useUsersStoreActions } from '@/store/userstore'
+import { useAppointmentsStoreActions } from '@/store/appointmentstore'
+import { useLabTestStoreActions } from '@/store/labteststore'
+import { usePrescriptionsByUserId } from '@/hooks/useprescription'
 const UserDashboardHome: React.FC = () => {
-  const { userId } = useStore(authStore);
+  const { userId } = useStore(authStore)
 
   if (!userId) {
     return (
       <div className="flex justify-center items-center min-h-screen text-zinc-500">
         Loading session...
       </div>
-    );
+    )
   }
 
-  const { getUserById } = useUsersStoreActions();
-  const userQuery:any = getUserById(userId);
-  const user = userQuery.data?.user;
+  const { getUserById } = useUsersStoreActions()
+  const userQuery: any = getUserById(userId)
+  const user = userQuery.data?.user
 
-  const { appointments: resp } = useAppointmentsStoreActions(userId ?? undefined);
-  const appointments = (resp as any)?.data ?? [];
+  const { appointments: resp } = useAppointmentsStoreActions(
+    userId ?? undefined,
+  )
+  const appointments = (resp as any)?.data ?? []
 
-  const { labTests: labTestsWrapper } = useLabTestStoreActions(userId ?? undefined);
-  const labTests = (labTestsWrapper as any)?.data ?? [];
+  const { labTests: labTestsWrapper } = useLabTestStoreActions(
+    userId ?? undefined,
+  )
+  const labTests = (labTestsWrapper as any)?.data ?? []
+
+  const { data: prescriptions } = usePrescriptionsByUserId(userId ?? undefined)
+
+  const frequencyToTimesPerDay = (frequency: string): number => {
+    const freq = frequency.toLowerCase()
+    if (freq.includes('once')) return 1
+    if (freq.includes('twice')) return 2
+    if (freq.includes('three')) return 3
+    if (freq.includes('four')) return 4
+    return parseInt(freq) || 1
+  }
+
+  const calculateDaysLeft = (validFrom: string, duration: string): number => {
+    const daysPrescribed = parseInt(duration.replace(/\D/g, '')) || 1
+    const start = new Date(validFrom)
+    const now = new Date()
+    const elapsed = Math.floor(
+      (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+    )
+    return Math.max(0, daysPrescribed - elapsed)
+  }
 
   // Filter confirmed appointments
-  const confirmedAppointments = appointments.filter((appt:any) => appt.status === "confirmed");
+  const confirmedAppointments = appointments.filter(
+    (appt: any) => appt.status === 'confirmed',
+  )
 
   const medications =
-    user?.patientPrescriptions?.map((prescription:any) => ({
-      id: prescription.id,
-      name: prescription.medicationName,
-      dosage: prescription.dosage,
-      instruction: prescription.instructions,
-      status: prescription.daysLeft < 3 ? "refillNeeded" : "normal",
-      daysLeft: prescription.daysLeft,
-    })) ?? [];
+    prescriptions?.flatMap((prescription: any) => {
+      return prescription.prescriptionItems.map((item: any) => {
+        const daysLeft = calculateDaysLeft(
+          prescription.valid_from,
+          item.duration,
+        )
+        return {
+          id: item.id,
+          name: item.medication?.name,
+          dosage: item.dosage,
+          instructions: item.instructions,
+          strength: item.medication?.strength,
+          category: item.medication?.category,
+          manufacturer: item.medication?.manufacturer,
+          daysLeft,
+          status: daysLeft < 3 ? 'refillNeeded' : 'normal',
+        }
+      })
+    }) ?? []
 
   const labResults =
     labTests
-      .filter((test:any) => test.result) 
-      .map((test:any) => ({
+      .filter((test: any) => test.result)
+      .map((test: any) => ({
         id: test.result.id,
         parameterName: test.result.parameterName,
         resultValue: test.result.resultValue,
@@ -65,21 +103,37 @@ const UserDashboardHome: React.FC = () => {
         referenceRange: test.result.referenceRange,
         abnormalFlag: test.result.abnormalFlag,
         notes: test.result.notes,
-      })) ?? [];
+      })) ?? []
 
   const statusMap = {
-    confirmed: { label: "Confirmed", color: "text-blue-500", icon: <FaCheckCircle /> },
-  };
+    confirmed: {
+      label: 'Confirmed',
+      color: 'text-blue-500',
+      icon: <FaCheckCircle />,
+    },
+  }
 
   return (
     <div className="max-w-7xl p-6 font-sans min-h-screen bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
       {/* Quick Actions */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
         {[
-          { icon: <FaCalendarPlus className="text-blue-600 text-2xl" />, label: "Book Appointment" },
-          { icon: <FaPills className="text-green-600 text-2xl" />, label: "Order Medicine" },
-          { icon: <FaFileMedicalAlt className="text-yellow-600 text-2xl" />, label: "View Reports" },
-          { icon: <FaMoneyBillWave className="text-red-600 text-2xl" />, label: "Pay Bills" },
+          {
+            icon: <FaCalendarPlus className="text-blue-600 text-2xl" />,
+            label: 'Book Appointment',
+          },
+          {
+            icon: <FaPills className="text-green-600 text-2xl" />,
+            label: 'Order Medicine',
+          },
+          {
+            icon: <FaFileMedicalAlt className="text-yellow-600 text-2xl" />,
+            label: 'View Reports',
+          },
+          {
+            icon: <FaMoneyBillWave className="text-red-600 text-2xl" />,
+            label: 'Pay Bills',
+          },
         ].map((action, index) => (
           <button
             key={index}
@@ -99,39 +153,50 @@ const UserDashboardHome: React.FC = () => {
             <FaCalendarCheck className="text-xl text-blue-500" />
           </header>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {confirmedAppointments.map((appt:any) => {
+            {confirmedAppointments.map((appt: any) => {
               const status = statusMap[appt.status] || {
                 label: appt.status,
-                color: "text-gray-500",
+                color: 'text-gray-500',
                 icon: <FaInfoCircle />,
-              };
-              const consultationIcon = appt.consultation_type === "virtual" ? "🎧" : "🏥";
+              }
+              const consultationIcon =
+                appt.consultation_type === 'virtual' ? '🎧' : '🏥'
               return (
                 <li
                   key={appt.id}
                   className="flex flex-col justify-between gap-2 bg-white dark:bg-zinc-900 p-4 rounded border dark:border-zinc-700 shadow-sm hover:shadow-md transition"
                 >
                   <div className="space-y-1">
-                    <p className="font-semibold text-base truncate">{appt.doctor?.name}</p>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">{appt.doctor?.specialty}</p>
+                    <p className="font-semibold text-base truncate">
+                      {appt.doctor?.name}
+                    </p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      {appt.doctor?.specialty}
+                    </p>
                     {appt.purpose && (
-                      <p className="text-xs text-muted-foreground italic">Purpose: {appt.purpose}</p>
+                      <p className="text-xs text-muted-foreground italic">
+                        Purpose: {appt.purpose}
+                      </p>
                     )}
                   </div>
                   <div className="text-sm space-y-1">
-                    <p className="font-semibold">{new Date(appt.timeSlot.date).toLocaleDateString()}</p>
+                    <p className="font-semibold">
+                      {new Date(appt.timeSlot.date).toLocaleDateString()}
+                    </p>
                     <p>{appt.time}</p>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <span>{consultationIcon}</span>
                       <span>{appt.consultation_type}</span>
                     </div>
-                    <div className={`flex items-center gap-1 text-xs font-medium ${status.color}`}>
+                    <div
+                      className={`flex items-center gap-1 text-xs font-medium ${status.color}`}
+                    >
                       {status.icon}
                       <span>{status.label}</span>
                     </div>
                   </div>
                 </li>
-              );
+              )
             })}
           </ul>
         </section>
@@ -143,23 +208,32 @@ const UserDashboardHome: React.FC = () => {
             <FaFlask className="text-xl text-blue-500" />
           </header>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {labResults.map((result:any) => (
+            {labResults.map((result: any) => (
               <div
                 key={result.id}
                 className="flex flex-col space-y-2 bg-white dark:bg-zinc-900 p-4 rounded border dark:border-zinc-700 shadow-sm"
               >
-                <p className="font-semibold text-base">{result.parameterName}</p>
-                <p className="text-sm">
-                  <span className="font-medium">Result:</span> {result.resultValue} {result.unit}
+                <p className="font-semibold text-base">
+                  {result.parameterName}
                 </p>
                 <p className="text-sm">
-                  <span className="font-medium">Reference Range:</span> {result.referenceRange}
+                  <span className="font-medium">Result:</span>{' '}
+                  {result.resultValue} {result.unit}
                 </p>
-                <p className={`text-sm font-medium ${result.abnormalFlag === "normal" ? "text-green-600" : "text-red-600"}`}>
-                  <span className="font-medium">Abnormal Flag:</span> {result.abnormalFlag}
+                <p className="text-sm">
+                  <span className="font-medium">Reference Range:</span>{' '}
+                  {result.referenceRange}
+                </p>
+                <p
+                  className={`text-sm font-medium ${result.abnormalFlag === 'normal' ? 'text-green-600' : 'text-red-600'}`}
+                >
+                  <span className="font-medium">Abnormal Flag:</span>{' '}
+                  {result.abnormalFlag}
                 </p>
                 {result.notes && (
-                  <p className="text-xs text-muted-foreground italic">Notes: {result.notes}</p>
+                  <p className="text-xs text-muted-foreground italic">
+                    Notes: {result.notes}
+                  </p>
                 )}
               </div>
             ))}
@@ -173,34 +247,50 @@ const UserDashboardHome: React.FC = () => {
               <h2 className="font-semibold text-lg">Current Medications</h2>
               <FaPills className="text-xl text-blue-500" />
             </header>
-            <ul className="space-y-4">
-              {medications.map((med:any) => (
-                <li
-                  key={med.id}
-                  className="flex items-center justify-between border rounded p-3 dark:border-zinc-700"
-                >
-                  <div className="flex items-center space-x-3">
-                    <FaPills className="text-xl text-indigo-600" />
-                    <div>
-                      <p className="font-semibold">{med.name}</p>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">{med.dosage}</p>
+
+            {medications.length === 0 ? (
+              <p className="text-muted-foreground text-sm italic">
+                No active medications.
+              </p>
+            ) : (
+              <ul className="space-y-4">
+                {medications.map((med: any) => (
+                  <li
+                    key={med.id}
+                    className="flex items-center justify-between border rounded p-3 bg-white dark:bg-zinc-900 dark:border-zinc-700 shadow-sm"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <FaPills className="text-xl text-indigo-600" />
+                      <div>
+                        <p className="font-semibold">
+                          {med.name}{' '}
+                          <span className="text-sm text-muted-foreground">
+                            ({med.strength})
+                          </span>
+                        </p>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                          {med.dosage}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {med.instructions}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-sm text-right">
-                    {med.status === "normal" && (
-                      <span className="text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded">
-                        {med.daysLeft} days left
-                      </span>
-                    )}
-                    {med.status === "refillNeeded" && (
-                      <span className="text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300 px-2 py-0.5 rounded">
-                        Refill needed
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+                    <div className="text-sm text-right">
+                      {med.status === 'normal' ? (
+                        <span className="text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded">
+                          {med.daysLeft} days left
+                        </span>
+                      ) : (
+                        <span className="text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300 px-2 py-0.5 rounded">
+                          Refill needed
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* AI Assistant */}
@@ -209,7 +299,8 @@ const UserDashboardHome: React.FC = () => {
               <FaRobot />
             </div>
             <p className="text-sm mb-4">
-              Your AI assistant is ready to help with medications, appointments, and health questions.
+              Your AI assistant is ready to help with medications, appointments,
+              and health questions.
             </p>
             <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow transition">
               Start Chat
@@ -218,7 +309,7 @@ const UserDashboardHome: React.FC = () => {
         </section>
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default UserDashboardHome;
+export default UserDashboardHome

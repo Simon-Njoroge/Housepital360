@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-router'
 
 
-
+import { hydrateAuthStoreFromLocalStorage } from '@/store/authstore.ts'
 import ClerkProvider from '../integrations/clerk/provider.tsx'
 
 import TanStackQueryLayout from '../integrations/tanstack-query/layout.tsx'
@@ -45,24 +45,23 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
   }),
 
-  component: () => (
-    <RootDocument>
-      <ThemeProvider defaultTheme="dark"
-      storageKey="vite-ui-theme">
-        {/* This is the root layout for the application. It wraps all routes. */}
-      <ClerkProvider>
-          <SessionHydrator />
-      
+  component: () => {
+    
 
-        <Outlet />
-        
+    return (
+      <RootDocument>
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
 
-        <TanStackQueryLayout />
-      </ClerkProvider>
-      </ThemeProvider>
-    </RootDocument>
-  ),
-})
+          <ClerkProvider>
+            <SessionHydrator />
+            <Outlet />
+            <TanStackQueryLayout />
+          </ClerkProvider>
+        </ThemeProvider>
+      </RootDocument>
+    );
+  },
+});
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (

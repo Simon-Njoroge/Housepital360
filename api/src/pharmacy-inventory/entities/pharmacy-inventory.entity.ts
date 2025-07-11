@@ -7,11 +7,12 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  
 } from 'typeorm';
 import { MedicationCatalog } from '../../medication-catalog/entities/medication-catalog.entity';
 import { PrescriptionItem } from '../../prescription-items/entities/prescription-item.entity';
 import { MedicationDispensation } from '../../medication-dispensations/entities/medication-dispensation.entity';
-import { MedicationRequest } from 'src/medication_requests/entities/medication_request.entity';
+import { MedicationRequest } from '../../medication_requests/entities/medication_request.entity';
 @Entity('pharmacy_inventory')
 export class PharmacyInventory {
   @PrimaryGeneratedColumn('uuid')
@@ -55,12 +56,18 @@ export class PharmacyInventory {
   @JoinColumn({ name: 'medication_id' })
   medication: MedicationCatalog;
 
-  @OneToMany(() => PrescriptionItem, (prescriptionItem) => prescriptionItem.inventory)
+  @OneToMany(
+    () => PrescriptionItem,
+    (prescriptionItem) => prescriptionItem.inventory,
+  )
   prescriptionItems: PrescriptionItem[];
 
-  @OneToMany(() => MedicationDispensation, (dispensation) => dispensation.inventory)
+  @OneToMany(
+    () => MedicationDispensation,
+    (dispensation) => dispensation.inventory,
+  )
   dispensations: MedicationDispensation[];
 
   @OneToMany(() => MedicationRequest, (request) => request.inventory)
-medicationRequests: MedicationRequest[];
+  medicationRequests: MedicationRequest[];
 }

@@ -70,7 +70,7 @@ export class AppointmentsController {
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+    return this.appointmentsService.cancelAppointment(id, updateAppointmentDto);
   }
 
   @Delete(':id')

@@ -22,6 +22,8 @@ export class LabTestResultsController {
     return this.labTestResultsService.findAll();
   }
 
+
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.labTestResultsService.findOne(id);

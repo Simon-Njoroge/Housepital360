@@ -56,6 +56,10 @@ export class Prescription {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @Column({ type: 'boolean', default: false , nullable: true })
+  is_deleted: boolean = false;
+
+
   // Relations
   @ManyToOne(() => User, (user) => user.doctorPrescriptions)
   @JoinColumn({ name: 'doctor_id' })

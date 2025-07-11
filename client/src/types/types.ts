@@ -314,8 +314,8 @@ export interface TPrescription {
   appointmentId: UUID;
   notes?: string;
   status: PrescriptionStatus;
-  validFrom: Timestamp;
-  validUntil: Timestamp;
+  valid_from: Timestamp;
+  valid_until: Timestamp;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
@@ -343,6 +343,7 @@ export interface  TMedicationDispensation {
   dispensedBy: UUID;
   dispensedAt?: Timestamp;
   notes?: string;
+  prescriptionItems?: TPrescriptionItem[];
 }
 
 export interface TBillingCode {

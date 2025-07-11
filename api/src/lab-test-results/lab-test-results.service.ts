@@ -79,6 +79,9 @@ export class LabTestResultsService {
     }
   }
 
+  //find all Lab Test Results by User ID
+  
+
   // Find lab test results by lab test ID
   async findByLabTestId(labTestId: string): Promise<{ results?: LabTestResult[]; error?: string }> {
     try {

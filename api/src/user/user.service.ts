@@ -45,86 +45,81 @@ export class UserService {
     }
   }
 // Find all users with relations
-  async findAll(): Promise<{ users?: User[]; error?: string }> {
+async findAll(
+  page: number = 1,
+  limit: number = 10,
+): Promise<{ users?: User[]; total?: number; error?: string }> {
   try {
-    const users = await this.userRepository.find({
-      relations: [
-        'departmentStaff',
-        'sessions',
-        'timeSlots',
-        'patientAppointments',
-        'doctorAppointments',
-        'patientMedicalHistory',
-        'createdMedicalHistory',
-        'allergies',
-        'patientVitals',
-        'recordedVitals',
-        'doctorPrescriptions',
-        'patientPrescriptions',
-        'medicationDispensations',
-        'invoices',
-        'patientPayments',
-        'processedPayments',
-        'insuranceClaims',
-        'patientLabTests',
-        'orderedLabTests',
-        'collectedLabTests',
-        'labTestResults',
-        'patientFeedback',
-        'respondedFeedback',
-        'auditLogs',
-        'queueHistoryChanges'
-      ],
-    });
-    return { users };
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    // Add relations selectively
+    queryBuilder
+      .leftJoinAndSelect('user.departmentStaff', 'departmentStaff')
+      .leftJoinAndSelect('user.timeSlots', 'timeSlots')
+      .leftJoinAndSelect('user.patientAppointments', 'patientAppointments')
+      .leftJoinAndSelect('user.doctorAppointments', 'doctorAppointments')
+      .leftJoinAndSelect('user.patientMedicalHistory', 'patientMedicalHistory')
+      .leftJoinAndSelect('user.createdMedicalHistory', 'createdMedicalHistory')
+      .leftJoinAndSelect('user.doctorPrescriptions', 'doctorPrescriptions')
+      .leftJoinAndSelect('user.patientPrescriptions', 'patientPrescriptions')
+      .leftJoinAndSelect('user.medicationDispensations', 'medicationDispensations')
+      .leftJoinAndSelect('user.patientLabTests', 'patientLabTests')
+      .leftJoinAndSelect('user.orderedLabTests', 'orderedLabTests')
+   
+
+    // Add pagination
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    // Execute query
+    const [users, total] = await queryBuilder.getManyAndCount();
+
+    return { users, total };
   } catch (error) {
-    console.error('🔥 Error fetching users:', error); 
-    return { error: 'Error fetching users' };
+    console.error('🔥 Error fetching users:', error.message);
+    return { error: `Error fetching users: ${error.message}` };
   }
 }
 
-
   // Find a user by ID
-  async findOne(id: string): Promise<{ user?: User; error?: string }> {
-    try {
-      const user = await this.userRepository.findOne({ where: { id }, 
-     relations: [
-    // Basic relations
-    'departmentStaff',
-    'sessions',
-    'timeSlots',
-    'patientAppointments',
-    'doctorAppointments',
-    'patientMedicalHistory',
-    'createdMedicalHistory',
-    'allergies',
-    'patientVitals',
-    'recordedVitals',
-    'doctorPrescriptions',
-    'patientPrescriptions',
-    'medicationDispensations',
-    'invoices',
-    'patientPayments',
-    'processedPayments',
-    'insuranceClaims',
-    'patientLabTests',
-    'orderedLabTests',
-    'collectedLabTests',
-    'labTestResults',
-    'patientFeedback',
-    'respondedFeedback',
-    'auditLogs',
-    'queueHistoryChanges',
-  ] });
-      if (!user) {
-        return { error: 'User not found' };
-      }
-      return { user };
-    } catch (error) {
-      return { error: 'Error fetching user' };
-    }
-  }
+ async findOne(id: string): Promise<{ user?: User; error?: string }> {
+  try {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
 
+    // Add relations selectively
+    queryBuilder
+      .where('user.id = :id', { id })
+      .leftJoinAndSelect('user.departmentStaff', 'departmentStaff')
+      .leftJoinAndSelect('user.timeSlots', 'timeSlots')
+      .leftJoinAndSelect('user.patientAppointments', 'patientAppointments')
+      .leftJoinAndSelect('user.doctorAppointments', 'doctorAppointments')
+      .leftJoinAndSelect('user.patientMedicalHistory', 'patientMedicalHistory')
+      .leftJoinAndSelect('user.createdMedicalHistory', 'createdMedicalHistory')
+      .leftJoinAndSelect('user.doctorPrescriptions', 'doctorPrescriptions')
+      .leftJoinAndSelect('user.patientPrescriptions', 'patientPrescriptions')
+      .leftJoinAndSelect('user.medicationDispensations', 'medicationDispensations')
+      .leftJoinAndSelect('user.invoices', 'invoices')
+      .leftJoinAndSelect('user.patientPayments', 'patientPayments')
+      .leftJoinAndSelect('user.processedPayments', 'processedPayments')
+      .leftJoinAndSelect('user.insuranceClaims', 'insuranceClaims')
+      .leftJoinAndSelect('user.patientLabTests', 'patientLabTests')
+      .leftJoinAndSelect('user.orderedLabTests', 'orderedLabTests')
+      .leftJoinAndSelect('user.labTestResults', 'labTestResults')
+      .leftJoinAndSelect('user.patientFeedback', 'patientFeedback')
+      .leftJoinAndSelect('user.respondedFeedback', 'respondedFeedback');
+
+    // Execute query
+    const user = await queryBuilder.getOne();
+
+    if (!user) {
+      return { error: 'User not found' };
+    }
+
+    return { user };
+  } catch (error) {
+    console.error('🔥 Error fetching user:', error.message);
+    return { error: `Error fetching user: ${error.message}` };
+  }
+}
   async findById(id: string) {
   return this.userRepository.findOne({ where: { id } });
 }

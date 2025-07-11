@@ -1,12 +1,12 @@
-'use client';
+import React, { useEffect } from 'react';
+import { hydrateAuthStoreFromLocalStorage } from '@/store/authstore';
 
-import { useEffect } from 'react';
-import { hydrateAuthStoreFromCookie } from '@/store/authstore';
-
-export default function SessionHydrator() {
+const SessionHydrator: React.FC = () => {
   useEffect(() => {
-    hydrateAuthStoreFromCookie();
+    hydrateAuthStoreFromLocalStorage();
   }, []);
 
-  return null; // Invisible
-}
+  return null; // No UI, just logic
+};
+
+export default SessionHydrator;

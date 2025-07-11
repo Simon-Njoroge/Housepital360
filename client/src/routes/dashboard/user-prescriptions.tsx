@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import PharmacyPanel from '@/components/dashboard/user/pharmacy'
+import PrescriptionsPanel from '@/components/dashboard/user/prescriptions'
 export const Route = createFileRoute('/dashboard/user-prescriptions')({
-  component: PharmacyPanel,
+  component: PrescriptionsPanel,
 })

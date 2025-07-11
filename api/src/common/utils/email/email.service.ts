@@ -147,6 +147,33 @@ async sendWithAttachment(options: {
   console.log(`📧 Email with attachment sent to ${options.to}`);
 }
 
+  async sendInvoicePrescriptionEmail(patientEmail: string, invoiceData: any, invoiceBuffer: Buffer): Promise<void> {
+  await this.transporter.sendMail({
+    from: '"Housepital360" <no-reply@housepital360.com>', // Replace with your email
+    to: patientEmail,
+    subject: 'Your Prescription Invoice',
+    html: `
+      <p>Dear ${invoiceData.patientName},</p>
+      <p>Your prescription invoice has been generated:</p>
+      <ul>
+        <li><strong>Invoice Number:</strong> ${invoiceData.invoice_number}</li>
+        <li><strong>Total Amount:</strong> $${invoiceData.grandTotal.toFixed(2)}</li>
+        <li><strong>Due Date:</strong> ${invoiceData.dueDate.toLocaleDateString()}</li>
+      </ul>
+      <p>Please find the attached invoice for your reference.</p>
+      <p>Thank you for choosing Housepital360!</p>
+    `,
+    attachments: [
+      {
+        filename: `Invoice-${invoiceData.invoice_number}.pdf`,
+        content: invoiceBuffer,
+      },
+    ],
+  });
+
+  
+}
+
 async sendAppointmentEmailWithAttachment({
   to,
   subject,

@@ -11,6 +11,9 @@ import { DoctorProfile } from 'src/doctor-profiles/entities/doctor-profile.entit
 import { EmailService } from 'src/common/utils/email/email.service';
 import { InvoiceAppointmentService } from 'src/common/utils/generateappointmentinvoice';
 import { Invoice } from 'src/invoices/entities/invoice.entity';
+import { PharmacyInventory } from 'src/pharmacy-inventory/entities/pharmacy-inventory.entity';
+import { QueryRunner } from 'typeorm';
+import { InvoiceStatus } from 'src/invoices/entities/invoice.entity';
 import {
   PatientQueue,
   QueueStatus,
@@ -39,116 +42,110 @@ export class AppointmentsService {
     private readonly emailService: EmailService,
   ) {}
 
-  async create(
-    createAppointmentDto: CreateAppointmentDto,
-  ): Promise<{ appointment?: Appointment; error?: string }> {
-    try {
-      const patient = await this.userRepository.findOne({
-        where: { id: createAppointmentDto.patient_id },
-      });
-      if (!patient) {
-        console.error('Patient not found:', createAppointmentDto.patient_id);
-        return { error: 'Patient not found' };
-      }
 
-      const doctor = await this.userRepository.findOne({
-        where: { id: createAppointmentDto.doctor_id },
-      });
-      if (!doctor) {
-        console.error('Doctor not found:', createAppointmentDto.doctor_id);
-        return { error: 'Doctor not found' };
-      }
 
-      const department = await this.departmentRepository.findOne({
-        where: { id: createAppointmentDto.department_id },
-      });
-      if (!department) {
-        console.error(
-          'Department not found:',
-          createAppointmentDto.department_id,
-        );
-        return { error: 'Department not found' };
-      }
+async create(
+  createAppointmentDto: CreateAppointmentDto,
+): Promise<{ appointment?: Appointment; error?: string }> {
+  const queryRunner = this.appointmentRepository.manager.connection.createQueryRunner();
 
-      const timeSlot = await this.timeSlotRepository.findOne({
-        where: { id: createAppointmentDto.time_slot_id },
-      });
-      if (!timeSlot) {
-        console.error(
-          'Time slot not found:',
-          createAppointmentDto.time_slot_id,
-        );
-        return { error: 'Time slot not found' };
-      }
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
 
-      const doctorProfile = await this.doctorProfileRepo.findOne({
-        where: { user: { id: doctor.id } },
-      });
+  try {
+    const { patient_id, doctor_id, department_id, time_slot_id } = createAppointmentDto;
 
-      const consultation_fee = Number(doctorProfile?.consultation_fee ?? 0);
+    // Fetch and validate patient, doctor, department, and time slot
+    const patient = await queryRunner.manager.findOne(User, { where: { id: patient_id } });
+    if (!patient) throw new Error('Patient not found');
 
-      timeSlot.is_booked = true;
-      await this.timeSlotRepository.save(timeSlot);
+    const doctor = await queryRunner.manager.findOne(User, { where: { id: doctor_id } });
+    if (!doctor) throw new Error('Doctor not found');
 
-      const appointment = this.appointmentRepository.create({
-        ...createAppointmentDto,
-        patient_id: patient.id,
-        doctor_id: doctor.id,
-        department_id: department.id,
-        time_slot_id: timeSlot.id,
-      });
+    const department = await queryRunner.manager.findOne(Department, { where: { id: department_id } });
+    if (!department) throw new Error('Department not found');
 
-      const savedAppointment =
-        await this.appointmentRepository.save(appointment);
+    const timeSlot = await queryRunner.manager.findOne(TimeSlot, { where: { id: time_slot_id } });
+    if (!timeSlot) throw new Error('Time slot not found');
 
-      const patientQueue = this.patientQueueRepository.create({
-        appointment: savedAppointment,
-        status: QueueStatus.WAITING,
-        current_position: undefined,
-      });
-      await this.patientQueueRepository.save(patientQueue);
+    if (timeSlot.is_booked) throw new Error('Time slot is already booked');
 
-      const invoiceNumber = `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const invoice = this.invoiceRepo.create({
-        patient_id: patient.id,
-        invoice_number: invoiceNumber,
-        subtotal: consultation_fee,
-        grand_total: consultation_fee,
-        balance_due: consultation_fee,
-        issue_date: new Date(),
-        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        notes: `Auto-generated for medication(s)`,
-      });
-      await this.invoiceRepo.save(invoice);
+    // Fetch doctor profile and calculate consultation fee
+    const doctorProfile = await queryRunner.manager.findOne(DoctorProfile, { where: { user: { id: doctor.id } } });
+    const consultation_fee = Number(doctorProfile?.consultation_fee ?? 0);
 
-      const invoiceBuffer =
-        await this.invoiceService.generateAppointmentInvoice(
-          patient,
-          doctor,
-          department,
-          timeSlot,
-          consultation_fee,
-          invoiceNumber,
-        );
+    // Mark time slot as booked
+    timeSlot.is_booked = true;
+    await queryRunner.manager.save(TimeSlot, timeSlot);
 
-      // await this.emailService.sendAppointmentEmailWithAttachment({
-      //   to: patient.email,
-      //   subject: `Appointment Invoice - ${invoiceNumber}`,
-      //   html: `<p>Dear ${patient.name},</p><p>Your appointment with Dr. ${doctor.name} has been confirmed. Attached is your invoice.</p>`,
-      //   attachments: [
-      //     {
-      //       filename: `invoice-${invoiceNumber}.pdf`,
-      //       content: invoiceBuffer,
-      //     },
-      //   ],
-      // });
+    // Create appointment
+    const appointment = queryRunner.manager.create(Appointment, {
+      ...createAppointmentDto,
+      patient_id: patient.id,
+      doctor_id: doctor.id,
+      department_id: department.id,
+      time_slot_id: timeSlot.id,
+    });
+    const savedAppointment = await queryRunner.manager.save(Appointment, appointment);
 
-      return { appointment: savedAppointment };
-    } catch (error) {
-      console.error('Error creating appointment:', error);
-      return { error: 'Failed to create appointment' };
-    }
+    // Add patient to queue
+    const patientQueue = queryRunner.manager.create(PatientQueue, {
+      appointment: savedAppointment,
+      status: QueueStatus.WAITING,
+    });
+    await queryRunner.manager.save(PatientQueue, patientQueue);
+
+    // Create invoice
+    const invoiceNumber = `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const invoice = queryRunner.manager.create(Invoice, {
+      patient_id: patient.id,
+      invoice_number: invoiceNumber,
+      subtotal: consultation_fee,
+      grand_total: consultation_fee,
+      balance_due: consultation_fee,
+      issue_date: new Date(),
+      due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      notes: `Auto-generated for medication(s)`,
+    });
+    await queryRunner.manager.save(Invoice, invoice);
+
+    // Generate invoice PDF
+    const invoiceBuffer = await this.invoiceService.generateAppointmentInvoice(
+      patient,
+      doctor,
+      department,
+      timeSlot,
+      consultation_fee,
+      invoiceNumber,
+    );
+
+    // Uncomment if email functionality is required
+    await this.emailService.sendAppointmentEmailWithAttachment({
+      to: patient.email,
+      subject: `Appointment Invoice - ${invoiceNumber}`,
+      html: `<p>Dear ${patient.name},</p><p>Your appointment with Dr. ${doctor.name} has been confirmed. Attached is your invoice.</p>`,
+      attachments: [
+        {
+          filename: `invoice-${invoiceNumber}.pdf`,
+          content: invoiceBuffer,
+        },
+      ],
+    });
+
+    // Commit transaction
+    await queryRunner.commitTransaction();
+
+    return { appointment: savedAppointment };
+  } catch (error) {
+    // Rollback transaction in case of error
+    await queryRunner.rollbackTransaction();
+    console.error('Error creating appointment:', error);
+    return { error: 'Failed to create appointment' };
+  } finally {
+    // Release query runner
+    await queryRunner.release();
   }
+}
   async findAll(): Promise<{ appointments?: Appointment[]; error?: string }> {
     try {
       const appointments = await this.appointmentRepository.find({
@@ -227,7 +224,7 @@ export class AppointmentsService {
       return { error: 'Failed to fetch patients related to the doctor' };
     }
   }
-  async update(
+  async cancelAppointment(
     id: string,
     updateAppointmentDto: UpdateAppointmentDto,
   ): Promise<{ appointment?: Appointment; error?: string }> {
@@ -248,6 +245,17 @@ export class AppointmentsService {
 
       if (!updated) {
         return { error: 'Appointment not found after update' };
+      }
+
+      //update invoice status to cancelled
+      if (updateAppointmentDto.status === AppointmentStatus.CANCELLED) {
+        const invoice = await this.invoiceRepo.findOne({
+          where: { appointment_id: id },
+        });
+        if (invoice) {
+          invoice.status = InvoiceStatus.CANCELLED;
+          await this.invoiceRepo.save(invoice);
+        }
       }
 
       return { appointment: updated };
@@ -361,7 +369,7 @@ export class AppointmentsService {
       return { error: 'Failed to delete appointment' };
     }
   }
-  @Cron('0 */5 * * * *') 
+  @Cron('0 */200 * * * *') 
   async markNoShowAppointments(): Promise<void> {
     try {
       const now = new Date();
